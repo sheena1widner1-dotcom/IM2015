@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Game Results Dashboard - Real-time data visualization">
+    <meta name="author" content="Professional Developer">
+    <title>Game Results Dashboard | Time & Results Analytics</title>
+    <style>
+        /* ===================================
+           CSS VARIABLES & RESET
+           =================================== */
+        :root {
+            --primary-color: #667eea;
+            --primary-dark: #5568d3;
+            --secondary-color: #764ba2;
+            --accent-color: #f093fb;
+            
+            --odd-bg: #d63031;
+            --odd-text: #ffffff;
+            --even-bg: #00b894;
+            --even-text: #ffffff;
+            
+            --success-color: #00b894;
+            --error-color: #d63031;
+            --warning-color: #fdcb6e;
+            
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-hover: #f5f5f5;
+            
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --text-light: #999999;
+            
+            --border-color: #dddddd;
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.2);
+            
+            --border-radius-sm: 4px;
+            --border-radius-md: 8px;
+            --border-radius-lg: 10px;
+            --border-radius-full: 9999px;
+            
+            --spacing-xs: 5px;
+            --spacing-sm: 10px;
+            --spacing-md: 15px;
+            --spacing-lg: 20px;
+            --spacing-xl: 30px;
+            
+            --transition-speed: 0.3s;
+            
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --font-size-sm: 12px;
+            --font-size-base: 14px;
+            --font-size-md: 16px;
+            --font-size-lg: 18px;
+            --font-size-xl: 24px;
+            --font-size-2xl: 32px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===================================
+           BASE STYLES
+           =================================== */
+        body {
+            font-family: var(--font-family);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            padding: var(--spacing-lg);
+            min-height: 100vh;
+            line-height: 1.6;
+            color: var(--text-primary);
+        }
+
+        /* ===================================
+           LAYOUT COMPONENTS
+           =================================== */
+        .app {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--bg-primary);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-lg);
+            padding: var(--spacing-xl);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .card__header {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .card__title {
+            color: var(--text-primary);
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .card__subtitle {
+            color: var(--text-secondary);
+            text-align: center;
+            font-size: var(--font-size-base);
+        }
+
+        /* ===================================
+           BUTTON COMPONENTS
+           =================================== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: var(--border-radius-md);
+            cursor: pointer;
+            font-size: var(--font-size-md);
+            font-weight: 500;
+            transition: all var(--transition-speed) ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            background: var(--border-color);
+            cursor: not-allowed;
+            transform: none;
+            opacity: 0.6;
+        }
+
+        .btn--refresh {
+            margin: 0 auto;
+            display: flex;
+        }
+
+        /* ===================================
+           CONTROLS SECTION
+           =================================== */
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        /* ===================================
+           MESSAGE COMPONENTS
+           =================================== */
+        .message {
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius-md);
+            margin-bottom: var(--spacing-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            font-size: var(--font-size-base);
+        }
+
+        .message--loading {
+            background: #e3f2fd;
+            color: #1976d2;
+            border-left: 4px solid #1976d2;
+            justify-content: center;
+            font-size: var(--font-size-lg);
+        }
+
+        .message--error {
+            background: #ffebee;
+            color: var(--error-color);
+            border-left: 4px solid var(--error-color);
+        }
+
+        .message--success {
+            background: #e8f5e9;
+            color: var(--success-color);
+            border-left: 4px solid var(--success-color);
+        }
+
+        .message__icon {
+            font-size: var(--font-size-lg);
+        }
+
+        /* ===================================
+           TABLE COMPONENTS
+           =================================== */
+        .table-container {
+            overflow-x: auto;
+            border-radius: var(--border-radius-md);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-primary);
+        }
+
+        .table__head {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+
+        .table__head th {
+            padding: var(--spacing-md) var(--spacing-lg);
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: var(--font-size-sm);
+            letter-spacing: 0.5px;
+        }
+
+        .table__body tr {
+            border-bottom: 1px solid var(--border-color);
+            transition: background var(--transition-speed) ease;
+        }
+
+        .table__body tr:hover {
+            background: var(--bg-hover);
+        }
+
+        .table__body tr:nth-child(even) {
+            background: var(--bg-secondary);
+        }
+
+        .table__body tr:nth-child(even):hover {
+            background: var(--bg-hover);
+        }
+
+        .table__body td {
+            padding: var(--spacing-md) var(--spacing-lg);
+            font-size: var(--font-size-base);
+        }
+
+        .table__cell--index {
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .table__cell--time {
+            font-family: 'Courier New', monospace;
+            color: var(--text-secondary);
+        }
+
+        /* ===================================
+           BADGE COMPONENTS
+           =================================== */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            padding: 6px 16px;
+            border-radius: var(--border-radius-full);
+            font-weight: 600;
+            font-size: var(--font-size-sm);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge--odd {
+            background: var(--odd-bg);
+            color: var(--odd-text);
+        }
+
+        .badge--even {
+            background: var(--even-bg);
+            color: var(--even-text);
+        }
+
+        /* ===================================
+           UTILITY CLASSES
+           =================================== */
+        .hidden {
+            display: none !important;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: currentColor;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ===================================
+           RESPONSIVE DESIGN
+           =================================== */
+        @media (max-width: 768px) {
+            body {
+                padding: var(--spacing-sm);
+            }
+
+            .card {
+                padding: var(--spacing-lg);
+            }
+
+            .table__head th,
+            .table__body td {
+                padding: var(--spacing-sm);
+                font-size: var(--font-size-sm);
+            }
+
+            .card__title {
+                font-size: var(--font-size-lg);
+            }
+        }
+
+        /* ===================================
+           ANIMATIONS
+           =================================== */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <!-- ===================================
+         APPLICATION CONTAINER
+         =================================== -->
+    <div class="app">
+        <div class="card fade-in">
+            <!-- Header Section -->
+            <header class="card__header">
+                <h1 class="card__title">🎮 Game Results Dashboard</h1>
+                <p class="card__subtitle">Real-time Time & Results Analytics</p>
+            </header>
+
+            <!-- Controls Section -->
+            <div class="controls">
+                <button id="refreshBtn" class="btn btn--refresh" aria-label="Refresh data">
+                    <span id="refreshIcon">🔄</span>
+                    <span>Refresh Data</span>
+                </button>
+            </div>
+
+            <!-- Messages Container -->
+            <div id="messagesContainer"></div>
+
+            <!-- Table Section -->
+            <div id="tableContainer" class="hidden"></div>
+        </div>
+    </div>
+
+    <!-- ===================================
+         APPLICATION JAVASCRIPT
+         =================================== -->
+    <script>
+        'use strict';
+
+        /**
+         * ===================================
+         * CONFIGURATION
+         * ===================================
+         */
+        const CONFIG = {
+            API: {
+                BASE_URL: 'https://manage.im2015.com/api/game/guess_odd',
+                PARAMS: {
+                    page: 1,
+                    limit: 200,
+                    type: 24
+                },
+                TIMEOUT: 30000 // 30 seconds
+            },
+            REFRESH_INTERVAL: null, // Set to milliseconds for auto-refresh
+            CACHE_DURATION: 60000, // 1 minute
+        };
+
+        /**
+         * ===================================
+         * UTILITY FUNCTIONS
+         * ===================================
+         */
+        const Utils = {
+            /**
+             * Build URL with query parameters
+             * @param {string} baseUrl - Base URL
+             * @param {Object} params - Query parameters
+             * @returns {string} Complete URL
+             */
+            buildUrl(baseUrl, params) {
+                const url = new URL(baseUrl);
+                Object.entries(params).forEach(([key, value]) => {
+                    url.searchParams.append(key, value);
+                });
+                return url.toString();
+            },
+
+            /**
+             * Format date/time string
+             * @param {string} timeString - Time string to format
+             * @returns {string} Formatted time
+             */
+            formatTime(timeString) {
+                if (!timeString) return 'N/A';
+                // Add custom formatting logic here if needed
+                return timeString;
+            },
+
+            /**
+             * Sanitize HTML to prevent XSS
+             * @param {string} str - String to sanitize
+             * @returns {string} Sanitized string
+             */
+            escapeHtml(str) {
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            },
+
+            /**
+             * Debounce function
+             * @param {Function} func - Function to debounce
+             * @param {number} wait - Wait time in milliseconds
+             * @returns {Function} Debounced function
+             */
+            debounce(func, wait) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
+            }
+        };
+
+        /**
+         * ===================================
+         * DOM MANAGER
+         * ===================================
+         */
+        class DOMManager {
+            constructor() {
+                this.elements = {
+                    refreshBtn: document.getElementById('refreshBtn'),
+                    refreshIcon: document.getElementById('refreshIcon'),
+                    messagesContainer: document.getElementById('messagesContainer'),
+                    tableContainer: document.getElementById('tableContainer')
+                };
+            }
+
+            /**
+             * Show loading message
+             */
+            showLoading() {
+                this.clearMessages();
+                this.elements.messagesContainer.innerHTML = `
+                    <div class="message message--loading fade-in">
+                        <span class="spinner"></span>
+                        <span>Loading data, please wait...</span>
+                    </div>
+                `;
+                this.elements.refreshBtn.disabled = true;
+                this.elements.refreshIcon.innerHTML = '<span class="spinner"></span>';
+            }
+
+            /**
+             * Show error message
+             * @param {string} message - Error message
+             */
+            showError(message) {
+                this.clearMessages();
+                this.elements.messagesContainer.innerHTML = `
+                    <div class="message message--error fade-in">
+                        <span class="message__icon">❌</span>
+                        <span><strong>Error:</strong> ${Utils.escapeHtml(message)}</span>
+                    </div>
+                `;
+            }
+
+            /**
+             * Show success message
+             * @param {string} message - Success message
+             */
+            showSuccess(message) {
+                this.clearMessages();
+                this.elements.messagesContainer.innerHTML = `
+                    <div class="message message--success fade-in">
+                        <span class="message__icon">✅</span>
+                        <span>${Utils.escapeHtml(message)}</span>
+                    </div>
+                `;
+                // Auto-hide success message after 3 seconds
+                setTimeout(() => this.clearMessages(), 3000);
+            }
+
+            /**
+             * Clear all messages
+             */
+            clearMessages() {
+                this.elements.messagesContainer.innerHTML = '';
+            }
+
+            /**
+             * Reset button state
+             */
+            resetButton() {
+                this.elements.refreshBtn.disabled = false;
+                this.elements.refreshIcon.textContent = '🔄';
+            }
+
+            /**
+             * Show/hide elements
+             * @param {HTMLElement} element - Element to toggle
+             * @param {boolean} show - Show or hide
+             */
+            toggleElement(element, show) {
+                if (show) {
+                    element.classList.remove('hidden');
+                } else {
+                    element.classList.add('hidden');
+                }
+            }
+
+            /**
+             * Render data table
+             * @param {Array} data - Array of data items
+             */
+            renderTable(data) {
+                const rows = data.map((item, index) => {
+                    const time = Utils.formatTime(item.time);
+                    const result = (item.result || 'N/A').toLowerCase();
+                    const badgeClass = result === 'odd' ? 'badge--odd' : 'badge--even';
+                    const resultIcon = result === 'odd' ? '🔴' : '🟢';
+
+                    return `
+                        <tr>
+                            <td class="table__cell--index">${index + 1}</td>
+                            <td class="table__cell--time">${Utils.escapeHtml(time)}</td>
+                            <td>
+                                <span class="badge ${badgeClass}">
+                                    <span>${resultIcon}</span>
+                                    <span>${Utils.escapeHtml(result.toUpperCase())}</span>
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                this.elements.tableContainer.innerHTML = `
+                    <div class="table-container fade-in">
+                        <table class="table">
+                            <thead class="table__head">
+                                <tr>
+                                    <th style="width: 80px;">#</th>
+                                    <th>Time</th>
+                                    <th>Result</th>
+                                </tr>
+                            </thead>
+                            <tbody class="table__body">
+                                ${rows}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                this.toggleElement(this.elements.tableContainer, true);
+            }
+        }
+
+        /**
+         * ===================================
+         * DATA SERVICE
+         * ===================================
+         */
+        class DataService {
+            constructor() {
+                this.cache = {
+                    data: null,
+                    timestamp: null
+                };
+            }
+
+            /**
+             * Check if cache is valid
+             * @returns {boolean} Cache validity
+             */
+            isCacheValid() {
+                if (!this.cache.data || !this.cache.timestamp) return false;
+                const now = Date.now();
+                return (now - this.cache.timestamp) < CONFIG.CACHE_DURATION;
+            }
+
+            /**
+             * Fetch data from API with timeout
+             * @returns {Promise<Object>} API response
+             */
+            async fetchData() {
+                const url = Utils.buildUrl(CONFIG.API.BASE_URL, CONFIG.API.PARAMS);
+
+                // Check cache first
+                if (this.isCacheValid()) {
+                    console.log('📦 Using cached data');
+                    return this.cache.data;
+                }
+
+                console.log('🌐 Fetching from API:', url);
+
+                // Create abort controller for timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), CONFIG.API.TIMEOUT);
+
+                try {
+                    const response = await fetch(url, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        signal: controller.signal
+                    });
+
+                    clearTimeout(timeoutId);
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+
+                    const data = await response.json();
+
+                    // Validate response structure
+                    if (!data || !data.data || !Array.isArray(data.data)) {
+                        throw new Error('Invalid API response format');
+                    }
+
+                    // Update cache
+                    this.cache.data = data;
+                    this.cache.timestamp = Date.now();
+
+                    console.log('✅ Data fetched successfully:', data.data.length, 'records');
+                    return data;
+
+                } catch (error) {
+                    clearTimeout(timeoutId);
+
+                    if (error.name === 'AbortError') {
+                        throw new Error('Request timeout - please try again');
+                    }
+
+                    throw error;
+                }
+            }
+
+            /**
+             * Clear cache
+             */
+            clearCache() {
+                this.cache.data = null;
+                this.cache.timestamp = null;
+            }
+        }
+
+        /**
+         * ===================================
+         * DATA ANALYZER
+         * ===================================
+         */
+        class DataAnalyzer {
+            /**
+             * Analyze data and generate statistics
+             * @param {Array} data - Data array
+             * @returns {Object} Statistics
+             */
+            static analyze(data) {
+                const stats = {
+                    total: data.length,
+                    odd: 0,
+                    even: 0,
+                    other: 0
+                };
+
+                data.forEach(item => {
+                    const result = (item.result || '').toLowerCase();
+                    if (result === 'odd') {
+                        stats.odd++;
+                    } else if (result === 'even') {
+                        stats.even++;
+                    } else {
+                        stats.other++;
+                    }
+                });
+
+                return stats;
+            }
+        }
+
+        /**
+         * ===================================
+         * MAIN APPLICATION CONTROLLER
+         * ===================================
+         */
+        class GameResultsApp {
+            constructor() {
+                this.domManager = new DOMManager();
+                this.dataService = new DataService();
+                this.refreshInterval = null;
+
+                this.init();
+            }
+
+            /**
+             * Initialize application
+             */
+            init() {
+                console.log('🚀 Initializing Game Results Dashboard...');
+                this.bindEvents();
+                this.loadData();
+
+                // Setup auto-refresh if configured
+                if (CONFIG.REFRESH_INTERVAL) {
+                    this.startAutoRefresh();
+                }
+            }
+
+            /**
+             * Bind event listeners
+             */
+            bindEvents() {
+                this.domManager.elements.refreshBtn.addEventListener('click', () => {
+                    this.handleRefresh();
+                });
+
+                // Handle visibility change to refresh when tab becomes visible
+                document.addEventListener('visibilitychange', () => {
+                    if (!document.hidden) {
+                        console.log('👁️ Tab visible - checking for updates...');
+                        this.loadData();
+                    }
+                });
+            }
+
+            /**
+             * Handle refresh button click
+             */
+            handleRefresh() {
+                console.log('🔄 Manual refresh triggered');
+                this.dataService.clearCache();
+                this.loadData();
+            }
+
+            /**
+             * Load data from API
+             */
+            async loadData() {
+                this.domManager.showLoading();
+
+                try {
+                    const response = await this.dataService.fetchData();
+                    const data = response.data;
+
+                    // Analyze data
+                    const stats = DataAnalyzer.analyze(data);
+
+                    // Render UI
+                    this.domManager.renderTable(data);
+
+                    // Show success message if manually refreshed
+                    if (!this.dataService.isCacheValid()) {
+                        this.domManager.showSuccess(
+                            `Successfully loaded ${data.length} records`
+                        );
+                    } else {
+                        this.domManager.clearMessages();
+                    }
+
+                } catch (error) {
+                    console.error('❌ Error loading data:', error);
+                    this.domManager.showError(error.message);
+                    this.domManager.toggleElement(
+                        this.domManager.elements.tableContainer, 
+                        false
+                    );
+                } finally {
+                    this.domManager.resetButton();
+                }
+            }
+
+            /**
+             * Start auto-refresh interval
+             */
+            startAutoRefresh() {
+                if (this.refreshInterval) {
+                    clearInterval(this.refreshInterval);
+                }
+
+                this.refreshInterval = setInterval(() => {
+                    console.log('⏰ Auto-refresh triggered');
+                    this.loadData();
+                }, CONFIG.REFRESH_INTERVAL);
+
+                console.log(
+                    `⏰ Auto-refresh enabled: every ${CONFIG.REFRESH_INTERVAL / 1000}s`
+                );
+            }
+
+            /**
+             * Stop auto-refresh interval
+             */
+            stopAutoRefresh() {
+                if (this.refreshInterval) {
+                    clearInterval(this.refreshInterval);
+                    this.refreshInterval = null;
+                    console.log('⏰ Auto-refresh disabled');
+                }
+            }
+        }
+
+        /**
+         * ===================================
+         * APPLICATION INITIALIZATION
+         * ===================================
+         */
+        // Initialize app when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                window.app = new GameResultsApp();
+            });
+        } else {
+            window.app = new GameResultsApp();
+        }
+
+    </script>
+</body>
+</html>
